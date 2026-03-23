@@ -3,10 +3,10 @@ import { randomUUID } from "node:crypto";
 import { createInterface } from "node:readline";
 import { existsSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
-import { parseStreamLine, extractToolName, extractToolArgs, extractToolResult, parseCodexOutput } from "./parser.js";
+import { parseStreamLine, extractToolName, extractToolArgs, extractToolResult } from "./parser.js";
 import { buildCursorCommand } from "./agents/cursor.js";
 import { buildClaudeCodeCommand } from "./agents/claude-code.js";
-import { buildCodexCommand, saveCodexSession } from "./agents/codex.js";
+import { buildCodexCommand } from "./agents/codex.js";
 import { IS_WIN } from "./platform.js";
 import * as registry from "./process-registry.js";
 import type {
@@ -34,9 +34,10 @@ function buildSpawnSpec(opts: RunOptions): SpawnSpec {
   }
 }
 
-/** Whether the agent outputs stream-json (parseable line-by-line) */
+/** Whether the agent outputs structured JSON (parseable line-by-line) */
 function isStreamJson(agentType: AgentType): boolean {
-  return agentType === "cursor" || agentType === "claude-code";
+  // All 3 agents now output structured JSON (Codex via --json JSONL)
+  return true;
 }
 
 /**
@@ -153,7 +154,7 @@ export async function runAgent(opts: RunOptions): Promise<RunResult> {
     }
 
     if (isStreamJson(opts.agentType)) {
-      // Parse structured stream-json output (Cursor / Claude Code)
+      // Parse structured JSON output (Cursor stream-json / Claude Code stream-json / Codex JSONL)
       const rl = createInterface({ input: proc.stdout!, crlfDelay: Infinity });
 
       rl.on("line", (line) => {
@@ -218,12 +219,6 @@ export async function runAgent(opts: RunOptions): Promise<RunResult> {
           }
         }
       });
-    } else {
-      // Plain text output (Codex)
-      proc.stdout!.on("data", (chunk: Buffer) => {
-        lastOutputTime = Date.now();
-        rawOutputChunks.push(chunk.toString());
-      });
     }
 
     let cleaned = false;
@@ -242,24 +237,6 @@ export async function runAgent(opts: RunOptions): Promise<RunResult> {
 
       const durationMs = Date.now() - startTime;
       const stderrText = stderrChunks.join("").trim();
-
-      // For Codex: parse plain text output into events + save session
-      if (!isStreamJson(opts.agentType)) {
-        const fullOutput = rawOutputChunks.join("");
-        const codexEvents = parseCodexOutput(fullOutput);
-        events.push(...codexEvents);
-        if (!resultText && fullOutput.trim()) {
-          resultText = fullOutput.trim();
-          completed = proc.exitCode === 0;
-        }
-        // Persist Codex session context for resume
-        if (opts.agentType === "codex" && completed) {
-          const summary = resultText.slice(0, 4000);
-          const sid = runId;
-          saveCodexSession(opts.projectPath, sid, summary, opts.codexSessionDir);
-          sessionId = sid;
-        }
-      }
 
       if (!error && !completed && stderrText) {
         error = stderrText;

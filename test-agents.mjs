@@ -32,11 +32,12 @@ const tests = [
     args: [
       "exec",
       "--full-auto",
+      "--json",
       `"Say hello and confirm you are Codex. One sentence max."`,
     ],
     env: { HTTPS_PROXY: PROXY },
     timeout: 60_000,
-    isStreamJson: false,
+    isStreamJson: true,
   },
   {
     name: "Cursor CLI",
