@@ -283,6 +283,8 @@ export default {
         base.permissionMode = cfg.agents?.claudeCode?.permissionMode ?? "bypassPermissions";
         base.enableAgentTeams = parsed.enableAgentTeams || cfg.agents?.claudeCode?.enableAgentTeams;
         base.teammateMode = cfg.agents?.claudeCode?.teammateMode;
+        base.mcpConfigPath = cfg.agents?.claudeCode?.mcpConfigPath;
+        base.enableMcp = !!cfg.agents?.claudeCode?.mcpConfigPath;
         base.continueSession = parsed.continueSession;
         base.resumeSessionId = parsed.resumeSessionId
           ?? (parsed.continueSession ? undefined : lastSession.get(sessionKey(parsed.agent, projectPath)));
@@ -291,6 +293,10 @@ export default {
       // Codex-specific
       if (parsed.agent === "codex") {
         base.approvalMode = cfg.agents?.codex?.approvalMode ?? "full-auto";
+        base.codexSessionDir = cfg.agents?.codex?.sessionDir;
+        base.continueSession = parsed.continueSession;
+        base.resumeSessionId = parsed.resumeSessionId
+          ?? (parsed.continueSession ? undefined : lastSession.get(sessionKey(parsed.agent, projectPath)));
       }
 
       return base;

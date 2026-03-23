@@ -26,6 +26,7 @@ export interface ClaudeCodeAgentCfg {
   enableAgentTeams?: boolean;
   teammateMode?: string;
   model?: string;
+  mcpConfigPath?: string;
 }
 
 export interface CodexAgentCfg {
@@ -33,6 +34,7 @@ export interface CodexAgentCfg {
   nodeBin?: string;
   codexScript?: string;
   approvalMode?: string; // "full-auto" | "yolo" | default
+  sessionDir?: string;
 }
 
 /** Notification configuration */
@@ -96,9 +98,11 @@ export interface RunOptions {
   permissionMode?: string;
   enableAgentTeams?: boolean;
   teammateMode?: string;
+  mcpConfigPath?: string;
 
   // Codex-specific
   approvalMode?: string;
+  codexSessionDir?: string;
 }
 
 /** Base stream event from Cursor CLI stream-json */

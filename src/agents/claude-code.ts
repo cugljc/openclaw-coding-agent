@@ -4,11 +4,12 @@ import { isCmdWrapper } from "../platform.js";
 /**
  * Build CLI args for Claude Code (`claude` CLI).
  *
- * Key design:
- * - Uses `--print` mode (headless, non-interactive) — no PTY needed
- * - Uses `--permission-mode bypassPermissions` for unattended execution
- * - Output format `stream-json` for structured parsing (same as Cursor)
- * - Supports Agent Teams via env var
+ * Enhanced features:
+ * - --print mode (headless, non-interactive)
+ * - --permission-mode bypassPermissions
+ * - stream-json output
+ * - Agent Teams via env var
+ * - MCP support via --mcp-config
  */
 export function buildClaudeCodeCommand(opts: RunOptions): {
   cmd: string;
@@ -33,8 +34,20 @@ export function buildClaudeCodeCommand(opts: RunOptions): {
     args.push("--model", opts.model);
   }
 
-  // --print for headless mode
-  args.push("--print", opts.prompt);
+  // MCP support: Claude Code supports --mcp-config for MCP server configs
+  if (opts.mcpConfigPath) {
+    args.push("--mcp-config", opts.mcpConfigPath);
+  } else {
+    // Default to strict-mcp-config to prevent hanging on broken MCP servers
+    args.push("--strict-mcp-config");
+  }
+
+  if (opts.enableMcp) {
+    args.push("--approve-mcps");
+  }
+
+  // --print for headless mode (--verbose required for stream-json with --print)
+  args.push("--verbose", "--print", opts.prompt);
 
   const env: Record<string, string> = {};
   if (opts.enableAgentTeams) {
@@ -50,5 +63,4 @@ export function buildClaudeCodeCommand(opts: RunOptions): {
   };
 }
 
-/** Claude Code also supports stream-json, uses same parser */
 export const CLAUDE_CODE_OUTPUT_FORMAT = "stream-json" as const;

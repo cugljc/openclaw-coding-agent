@@ -6,7 +6,7 @@ import { join } from "node:path";
 import { parseStreamLine, extractToolName, extractToolArgs, extractToolResult, parseCodexOutput } from "./parser.js";
 import { buildCursorCommand } from "./agents/cursor.js";
 import { buildClaudeCodeCommand } from "./agents/claude-code.js";
-import { buildCodexCommand } from "./agents/codex.js";
+import { buildCodexCommand, saveCodexSession } from "./agents/codex.js";
 import { IS_WIN } from "./platform.js";
 import * as registry from "./process-registry.js";
 import type {
@@ -243,7 +243,7 @@ export async function runAgent(opts: RunOptions): Promise<RunResult> {
       const durationMs = Date.now() - startTime;
       const stderrText = stderrChunks.join("").trim();
 
-      // For Codex: parse plain text output into events
+      // For Codex: parse plain text output into events + save session
       if (!isStreamJson(opts.agentType)) {
         const fullOutput = rawOutputChunks.join("");
         const codexEvents = parseCodexOutput(fullOutput);
@@ -251,6 +251,13 @@ export async function runAgent(opts: RunOptions): Promise<RunResult> {
         if (!resultText && fullOutput.trim()) {
           resultText = fullOutput.trim();
           completed = proc.exitCode === 0;
+        }
+        // Persist Codex session context for resume
+        if (opts.agentType === "codex" && completed) {
+          const summary = resultText.slice(0, 4000);
+          const sid = runId;
+          saveCodexSession(opts.projectPath, sid, summary, opts.codexSessionDir);
+          sessionId = sid;
         }
       }
 
