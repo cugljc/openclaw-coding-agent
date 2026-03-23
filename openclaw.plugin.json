@@ -1,0 +1,135 @@
+{
+  "id": "openclaw-coding-agent",
+  "name": "Coding Agent",
+  "version": "1.0.0",
+  "description": "Dispatch coding tasks to Cursor CLI, Claude Code, and Codex agents with cross-platform support",
+  "author": "openclaw-community",
+  "license": "MIT",
+  "keywords": [
+    "cursor",
+    "claude-code",
+    "codex",
+    "coding-agent",
+    "multi-agent"
+  ],
+  "configSchema": {
+    "type": "object",
+    "properties": {
+      "projects": {
+        "type": "object",
+        "description": "Project name → absolute path mapping"
+      },
+      "defaultAgent": {
+        "type": "string",
+        "enum": [
+          "cursor",
+          "claude-code",
+          "codex"
+        ],
+        "description": "Default agent to use when not specified"
+      },
+      "defaultTimeoutSec": {
+        "type": "number",
+        "description": "Max execution time per task (seconds)"
+      },
+      "noOutputTimeoutSec": {
+        "type": "number",
+        "description": "Kill if no output for this many seconds"
+      },
+      "maxConcurrent": {
+        "type": "number",
+        "description": "Max concurrent agent processes"
+      },
+      "enableAgentTool": {
+        "type": "boolean",
+        "description": "Register coding_agent tool for PI Agent"
+      },
+      "resultDir": {
+        "type": "string",
+        "description": "Directory to persist task results"
+      },
+      "notify": {
+        "type": "object",
+        "properties": {
+          "telegram": {
+            "type": "boolean"
+          },
+          "telegramTarget": {
+            "type": "string"
+          },
+          "web": {
+            "type": "boolean"
+          },
+          "webAgentId": {
+            "type": "string"
+          }
+        }
+      },
+      "agents": {
+        "type": "object",
+        "properties": {
+          "cursor": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "nodeBin": {
+                "type": "string"
+              },
+              "entryScript": {
+                "type": "string"
+              },
+              "enableMcp": {
+                "type": "boolean"
+              },
+              "model": {
+                "type": "string"
+              },
+              "prefixArgs": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "claudeCode": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "permissionMode": {
+                "type": "string"
+              },
+              "enableAgentTeams": {
+                "type": "boolean"
+              },
+              "teammateMode": {
+                "type": "string"
+              }
+            }
+          },
+          "codex": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "nodeBin": {
+                "type": "string"
+              },
+              "codexScript": {
+                "type": "string"
+              },
+              "approvalMode": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
